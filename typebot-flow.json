@@ -1,0 +1,11 @@
+
+{
+  "flow": [
+    { "id": "start", "type": "text", "text": "Olá! Qual é o seu nome?" },
+    { "id": "name", "type": "input", "field": "nome" },
+    { "id": "askFile", "type": "text", "text": "Ótimo, {{nome}}! Envie a foto ou PDF da receita." },
+    { "id": "fileUpload", "type": "file", "field": "file" },
+    { "id": "webhook", "type": "send_webhook", "url": "{{WEBHOOK_URL}}", "formData": { "file": "{{file}}" } },
+    { "id": "response", "type": "text", "text": "{{webhook.reply}}" }
+  ]
+}
