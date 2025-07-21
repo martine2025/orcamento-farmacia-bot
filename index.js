@@ -61,7 +61,8 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
       from: process.env.EMAIL_USER,
       to: "certamh@gmail.com",
       subject: "Orçamento de Manipulação",
-      text: \`Orçamento enviado para cliente via WhatsApp:\n\n\${message}\`
+      text: `Orçamento enviado para cliente via WhatsApp:\n\n${message}`
+
     });
 
     res.json({ reply: message });
