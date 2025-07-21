@@ -54,7 +54,8 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
     const baseData = sheetRes.data.values;
 
     const budget = calculateBudget(formulaText, baseData);
-    const message = \`Olá! Aqui está seu orçamento:\n\n\${budget.details}\n💰 *Total: R$ \${budget.total.toFixed(2)}*\`;
+    const message = `Olá! Aqui está seu orçamento:\n\n${budget.details}\n💰 *Total: R$ ${budget.total.toFixed(2)}*`;
+
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
