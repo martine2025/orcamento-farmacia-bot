@@ -41,7 +41,8 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
     const interpretRes = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: \`Interprete esta prescrição médica e liste o nome de cada composto e a quantidade (com formato: nome, quantidade, unidade):\n\${text}\`,
+      prompt: `Interprete esta prescrição médica e liste o nome de cada composto e a quantidade (com formato: nome, quantidade, unidade):\n${text}`,
+
       max_tokens: 500
     });
     const formulaText = interpretRes.data.choices[0].text.trim();
