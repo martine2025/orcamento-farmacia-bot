@@ -1,6 +1,7 @@
 {
   "name": "orcamento-farmacia-bot",
   "version": "1.0.0",
+  "type": "commonjs"
   "description": "Bot de orçamento para farmácia de manipulação",
   "main": "index.js",
   "scripts": {
