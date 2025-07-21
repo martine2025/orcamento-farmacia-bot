@@ -1,0 +1,18 @@
+{
+  "name": "orcamento-farmacia-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google-cloud/vision": "^3.4.1",
+    "axios": "^1.6.7",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "multer": "^1.4.5",
+    "nodemailer": "^6.9.3",
+    "openai": "^4.15.1",
+    "googleapis": "^131.0.0"
+  }
+}
