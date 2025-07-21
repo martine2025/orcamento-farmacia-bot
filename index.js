@@ -12,8 +12,19 @@ const upload = multer({ storage: multer.memoryStorage() });
 const app = express();
 app.use(express.json());
 
-const visionClient = new vision.ImageAnnotatorClient();
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }));
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+const response = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: [
+    { role: "system", content: "Faça o orçamento conforme regras da farmácia." },
+    { role: "user", content: prompt }
+  ]
+});
+
 
 const sheets = google.sheets({
   version: "v4",
