@@ -1,3 +1,7 @@
+const env = require('./env');
+const OPENAI_API_KEY = env.OPENAI_API_KEY;
+const GOOGLE_SHEETS_CLIENT_EMAIL = env.GOOGLE_SHEETS_CLIENT_EMAIL;
+const GOOGLE_SHEETS_PRIVATE_KEY = env.GOOGLE_SHEETS_PRIVATE_KEY;
 const express = require("express");
 const multer = require("multer");
 const { google } = require("googleapis");
