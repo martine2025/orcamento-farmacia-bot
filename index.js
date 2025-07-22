@@ -5,6 +5,9 @@ const nodemailer = require("nodemailer");
 const OpenAI = require("openai");
 const vision = require("@google-cloud/vision");
 const { calculateBudget } = require("./utils/logic");
+console.log("🔍 TODAS VARIÁVEIS DE AMBIENTE:");
+console.log(JSON.stringify(process.env, null, 2));
+
 
 require("dotenv").config();
 console.log("🔍 OPENAI_API_KEY carregada:", process.env.OPENAI_API_KEY);
