@@ -8,6 +8,7 @@ const { calculateBudget } = require("./utils/logic");
 
 require("dotenv").config();
 console.log("🔍 OPENAI_API_KEY carregada:", process.env.OPENAI_API_KEY);
+console.log("🔍 GOOGLE_SHEETS_CLIENT_EMAIL carregada:", process.env.GOOGLE_SHEETS_CLIENT_EMAIL);
 
 const app = express();
 app.use(express.json());
@@ -108,3 +109,4 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor rodando na porta ${PORT}`));
+
