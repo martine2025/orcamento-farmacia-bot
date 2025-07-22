@@ -7,6 +7,7 @@ const vision = require("@google-cloud/vision");
 const { calculateBudget } = require("./utils/logic");
 
 require("dotenv").config();
+console.log("🔍 OPENAI_API_KEY carregada:", process.env.OPENAI_API_KEY);
 
 const app = express();
 app.use(express.json());
