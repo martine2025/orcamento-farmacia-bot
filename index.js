@@ -2,6 +2,7 @@ const env = require('./env');
 const OPENAI_API_KEY = env.OPENAI_API_KEY;
 const GOOGLE_SHEETS_CLIENT_EMAIL = env.GOOGLE_SHEETS_CLIENT_EMAIL;
 const GOOGLE_SHEETS_PRIVATE_KEY = env.GOOGLE_SHEETS_PRIVATE_KEY;
+
 const express = require("express");
 const multer = require("multer");
 const { google } = require("googleapis");
@@ -9,56 +10,55 @@ const nodemailer = require("nodemailer");
 const OpenAI = require("openai");
 const vision = require("@google-cloud/vision");
 const { calculateBudget } = require("./utils/logic");
-console.log("🔍 TODAS VARIÁVEIS DE AMBIENTE:");
-console.log(JSON.stringify(process.env, null, 2));
-
 
 require("dotenv").config();
-console.log("🔍 OPENAI_API_KEY carregada:", process.env.OPENAI_API_KEY);
-console.log("🔍 GOOGLE_SHEETS_CLIENT_EMAIL carregada:", process.env.GOOGLE_SHEETS_CLIENT_EMAIL);
+
+// 🔍 Logs úteis
+console.log("🔍 OPENAI_API_KEY carregada:", OPENAI_API_KEY);
+console.log("🔍 GOOGLE_SHEETS_CLIENT_EMAIL carregada:", GOOGLE_SHEETS_CLIENT_EMAIL);
+console.log("🔍 GOOGLE_SHEETS_PRIVATE_KEY carregada:", GOOGLE_SHEETS_PRIVATE_KEY ? "[OK]" : "❌ Não carregada");
+
+// 🔒 Validação das variáveis de ambiente
+if (
+  !OPENAI_API_KEY ||
+  !GOOGLE_SHEETS_CLIENT_EMAIL ||
+  !GOOGLE_SHEETS_PRIVATE_KEY ||
+  !process.env.EMAIL_USER ||
+  !process.env.EMAIL_PASS ||
+  !process.env.SHEET_ID ||
+  !process.env.SHEET_RANGE
+) {
+  console.error("❌ Uma ou mais variáveis de ambiente estão faltando.");
+  process.exit(1);
+}
 
 const app = express();
 app.use(express.json());
+
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Validação de variáveis de ambiente
-const requiredEnv = [
-  "OPENAI_API_KEY",
-  "GOOGLE_SHEETS_CLIENT_EMAIL",
-  "GOOGLE_SHEETS_PRIVATE_KEY",
-  "EMAIL_USER",
-  "EMAIL_PASS",
-  "SHEET_ID",
-  "SHEET_RANGE"
-];
-
-requiredEnv.forEach((name) => {
-  if (!process.env[name]) {
-    console.error(`❌ Variável de ambiente ${name} não está definida.`);
-    process.exit(1);
-  }
-});
-
-// Inicializando OpenAI
+// Inicializar OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: OPENAI_API_KEY
 });
 
-// Inicializando Vision API
+// Inicializar Vision API
 const visionClient = new vision.ImageAnnotatorClient();
 
-// Inicializando Google Sheets
-const sheets = google.sheets({
-  version: "v4",
-  const auth = new google.auth.JWT(
+// Inicializar autenticação do Google Sheets
+const auth = new google.auth.JWT(
   GOOGLE_SHEETS_CLIENT_EMAIL,
   null,
-  GOOGLE_SHEETS_PRIVATE_KEY,
+  GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'), // Corrige quebras de linha
   ['https://www.googleapis.com/auth/spreadsheets']
 );
+
+const sheets = google.sheets({
+  version: "v4",
+  auth
 });
 
-// Inicializando Nodemailer
+// Inicializar Nodemailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -101,7 +101,7 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: "certamh@gmail.com",
+      to: "certamh@gmail.com", // você pode tornar isso dinâmico depois
       subject: "Orçamento de Manipulação",
       text: `Orçamento enviado para cliente via WhatsApp:\n\n${message}`
     });
@@ -115,4 +115,3 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor rodando na porta ${PORT}`));
-
