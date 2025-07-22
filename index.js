@@ -1,23 +1,44 @@
 const express = require("express");
 const multer = require("multer");
-const vision = require("@google-cloud/vision");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
-const { calculateBudget } = require("./utils/logic");
 const OpenAI = require("openai");
+const vision = require("@google-cloud/vision");
+const { calculateBudget } = require("./utils/logic");
 
 require("dotenv").config();
 
-const upload = multer({ storage: multer.memoryStorage() });
 const app = express();
 app.use(express.json());
+const upload = multer({ storage: multer.memoryStorage() });
 
+// Validação de variáveis de ambiente
+const requiredEnv = [
+  "OPENAI_API_KEY",
+  "GOOGLE_SHEETS_CLIENT_EMAIL",
+  "GOOGLE_SHEETS_PRIVATE_KEY",
+  "EMAIL_USER",
+  "EMAIL_PASS",
+  "SHEET_ID",
+  "SHEET_RANGE"
+];
+
+requiredEnv.forEach((name) => {
+  if (!process.env[name]) {
+    console.error(`❌ Variável de ambiente ${name} não está definida.`);
+    process.exit(1);
+  }
+});
+
+// Inicializando OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Inicializando Vision API
 const visionClient = new vision.ImageAnnotatorClient();
 
+// Inicializando Google Sheets
 const sheets = google.sheets({
   version: "v4",
   auth: new google.auth.GoogleAuth({
@@ -29,6 +50,7 @@ const sheets = google.sheets({
   })
 });
 
+// Inicializando Nodemailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -78,10 +100,10 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
     res.json({ reply: message });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Erro ao processar receita:", err);
     res.status(500).json({ reply: "Desculpe, ocorreu um erro ao processar sua receita." });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Servidor rodando na porta ${PORT}`));
