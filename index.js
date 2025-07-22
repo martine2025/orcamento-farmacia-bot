@@ -1,7 +1,7 @@
 const env = require('./env');
 const OPENAI_API_KEY = env.OPENAI_API_KEY;
 const GOOGLE_SHEETS_CLIENT_EMAIL = env.GOOGLE_SHEETS_CLIENT_EMAIL;
-const GOOGLE_SHEETS_PRIVATE_KEY = env.GOOGLE_SHEETS_PRIVATE_KEY;
+const GOOGLE_SHEETS_PRIVATE_KEY = env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
 const express = require("express");
 const multer = require("multer");
@@ -49,7 +49,7 @@ const visionClient = new vision.ImageAnnotatorClient();
 const auth = new google.auth.JWT(
   GOOGLE_SHEETS_CLIENT_EMAIL,
   null,
-  GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'), // Corrige quebras de linha
+  GOOGLE_SHEETS_PRIVATE_KEY,
   ['https://www.googleapis.com/auth/spreadsheets']
 );
 
