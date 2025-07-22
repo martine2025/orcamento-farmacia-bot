@@ -1,31 +1,29 @@
-
 const express = require("express");
 const multer = require("multer");
 const vision = require("@google-cloud/vision");
-const { Configuration, OpenAIApi } = require("openai");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const { calculateBudget } = require("./utils/logic");
+const OpenAI = require("openai");
 
 require("dotenv").config();
+
 const upload = multer({ storage: multer.memoryStorage() });
 const app = express();
 app.use(express.json());
 
-const OpenAI = require("openai");
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-async function processPrescription(prompt) {
-  const resultado = await processPrescription(prompt);
+
+const visionClient = new vision.ImageAnnotatorClient();
 
 const sheets = google.sheets({
   version: "v4",
   auth: new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\n/g, "\n")
+      private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, "\n")
     },
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"]
   })
@@ -33,7 +31,10 @@ const sheets = google.sheets({
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
 const SHEET_ID = process.env.SHEET_ID;
@@ -41,33 +42,38 @@ const SHEET_RANGE = process.env.SHEET_RANGE;
 
 app.post("/webhook", upload.single("file"), async (req, res) => {
   try {
-    const [ocrRes] = await visionClient.documentTextDetection({ image: { content: req.file.buffer } });
+    const [ocrRes] = await visionClient.documentTextDetection({
+      image: { content: req.file.buffer }
+    });
+
     const text = ocrRes.fullTextAnnotation.text;
 
-    const interpretRes = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `Interprete esta prescrição médica e liste o nome de cada composto e a quantidade (com formato: nome, quantidade, unidade):\n${text}`,
-
-      max_tokens: 500
+    const interpretRes = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{
+        role: "user",
+        content: `Interprete esta prescrição médica e liste o nome de cada composto e a quantidade (com formato: nome, quantidade, unidade):\n${text}`
+      }]
     });
-    const formulaText = interpretRes.data.choices[0].text.trim();
+
+    const formulaText = interpretRes.choices[0].message.content.trim();
 
     const sheetRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
       range: SHEET_RANGE
     });
+
     const baseData = sheetRes.data.values;
 
     const budget = calculateBudget(formulaText, baseData);
-    const message = `Olá! Aqui está seu orçamento:\n\n${budget.details}\n💰 *Total: R$ ${budget.total.toFixed(2)}*`;
 
+    const message = `Olá! Aqui está seu orçamento:\n\n${budget.details}\n💰 *Total: R$ ${budget.total.toFixed(2)}*`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: "certamh@gmail.com",
       subject: "Orçamento de Manipulação",
       text: `Orçamento enviado para cliente via WhatsApp:\n\n${message}`
-
     });
 
     res.json({ reply: message });
@@ -79,4 +85,3 @@ app.post("/webhook", upload.single("file"), async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server rodando na porta ${PORT}`));
-
